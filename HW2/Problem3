@@ -3,8 +3,6 @@ from numpy.linalg import eig
 from numpy.linalg import inv
 import matplotlib.pyplot as plt
 
-
-
 ##### Function to calculate loss and gadient given betas in each iteration
 def loss_and_grad_function(X, Y, Beta, Lambda):
     n = X.shape[0]
@@ -75,6 +73,13 @@ ratio_list_list = []
 for i in lamb_list:
     ratio_list = LinearRegressionGradientDescent(X=A, Y=y, Alpha=1/(i + w_max), Lambda=i, Tol=tol, Iter_Max=iter_max)[3]
     ratio_list_list.append(ratio_list)
+
+print("*****************************Convergence Rate****************************")
+print(r"Epochs to converge with lambda = 0.1: ", len(ratio_list_list[0]))
+print(r"Epochs to converge with lambda = 1  : ", len(ratio_list_list[1]))
+print(r"Epochs to converge with lambda = 10 : ", len(ratio_list_list[2]))
+print(r"Epochs to converge with lambda = 100: ", len(ratio_list_list[3]))
+print(r"Epochs to converge with lambda = 200: ", len(ratio_list_list[4]))
 
 plot2 = plt.figure(2)
 plt.plot(ratio_list_list[0], label=r"$\lambda$ = 0.1")
