@@ -1,16 +1,8 @@
 import numpy as np
 from numpy.linalg import eig
 from numpy.linalg import inv
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import SGDClassifier
-from sklearn.model_selection import KFold
-from sklearn.model_selection import cross_val_score
 import matplotlib.pyplot as plt
-from io import StringIO
-import sys
-from sklearn.linear_model import SGDRegressor
-from sklearn.linear_model import Ridge
+
 
 
 ##### Function to calculate loss and gadient given betas in each iteration
