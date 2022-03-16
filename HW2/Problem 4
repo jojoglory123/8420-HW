@@ -1,0 +1,79 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+import cv2 # install opencv-python
+import pandas as pd
+
+##### load image
+img = cv2.cvtColor(cv2.imread('Lenna_(test_image).png'), cv2.COLOR_BGR2RGB)
+
+##### Splitting into channels
+blue,green,red = cv2.split(img)
+
+##### Scale them to 0 to 1
+df_blue, df_green, df_red = blue/255, green/255, red/255
+
+##### Fit and transform the data in PCA
+number_list = [2, 5, 20, 50, 80, 100]
+
+##### Creat an array to store reduced images
+img_reduced_list = np.empty(shape=(len(number_list), img.shape[0], img.shape[1], img.shape[2]))
+
+##### Fit and transform the data in PCA
+for i in range(len(number_list)):
+    pca_b = PCA(n_components=number_list[i])
+    pca_b.fit(df_blue)
+    trans_pca_b = pca_b.transform(df_blue)
+    pca_g = PCA(n_components=number_list[i])
+    pca_g.fit(df_green)
+    trans_pca_g = pca_g.transform(df_green)
+    pca_r = PCA(n_components=number_list[i])
+    pca_r.fit(df_red)
+    trans_pca_r = pca_r.transform(df_red)
+    ##### Reconstruct the image and visualize
+    b_arr = pca_b.inverse_transform(trans_pca_b)
+    g_arr = pca_g.inverse_transform(trans_pca_g)
+    r_arr = pca_r.inverse_transform(trans_pca_r)
+    ##### Store resuced images
+    img_reduced_list[i, :, :, :]= cv2.merge((b_arr, g_arr, r_arr))
+
+figure1, axis = plt.subplots(2, 3)
+axis[0, 0].imshow(img_reduced_list[0, :, :, :])
+axis[0, 0].set_title("2 components")
+axis[0, 0].axes.xaxis.set_visible(False)
+axis[0, 0].axes.yaxis.set_visible(False)
+axis[0, 1].imshow(img_reduced_list[1, :, :, :])
+axis[0, 1].set_title("5 components")
+axis[0, 1].axes.xaxis.set_visible(False)
+axis[0, 1].axes.yaxis.set_visible(False)
+axis[0, 2].imshow(img_reduced_list[2, :, :, :])
+axis[0, 2].set_title("20 components")
+axis[0, 2].axes.xaxis.set_visible(False)
+axis[0, 2].axes.yaxis.set_visible(False)
+axis[1, 0].imshow(img_reduced_list[3, :, :, :])
+axis[1, 0].set_title("50 components")
+axis[1, 0].axes.xaxis.set_visible(False)
+axis[1, 0].axes.yaxis.set_visible(False)
+axis[1, 1].imshow(img_reduced_list[4, :, :, :])
+axis[1, 1].set_title("80 components")
+axis[1, 1].axes.xaxis.set_visible(False)
+axis[1, 1].axes.yaxis.set_visible(False)
+axis[1, 2].imshow(img_reduced_list[5, :, :, :])
+axis[1, 2].set_title("100 components")
+axis[1, 2].axes.xaxis.set_visible(False)
+axis[1, 2].axes.yaxis.set_visible(False)
+
+##### Store the image compressed with 50 components. Compare the size
+"""cv2.imwrite('2 components.png',img_reduced_list[0, :, :, :])
+cv2.imwrite('5 components.png',img_reduced_list[1, :, :, :])
+cv2.imwrite('20 components.png',img_reduced_list[2, :, :, :])
+cv2.imwrite('50 components.png',img_reduced_list[3, :, :, :])
+cv2.imwrite('80 components.png',img_reduced_list[4, :, :, :])
+cv2.imwrite('100 components.png',img_reduced_list[5, :, :, :])"""
+
+d = {"# of Components": ["Storage Size (KB)", "Compression Ratio"],
+     "Original": ["463", "NA"], "2": ["17", 27.24], "5": ["21", 22.05], "20": ["28", 16.54],
+     "50": ["34", 13.62], "80": ["36", 12.86], "100": ["38", 12.18], }
+df = pd.DataFrame(data=d)
+print(df)
+plt.show()
