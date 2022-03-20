@@ -5,7 +5,7 @@ import cv2 # install opencv-python
 import pandas as pd
 
 ##### load image
-img = cv2.cvtColor(cv2.imread('Lenna_(test_image).png'), cv2.COLOR_BGR2RGB)
+img = cv2.cvtColor(cv2.imread('Lenna.png'), cv2.COLOR_BGR2RGB)
 
 ##### Splitting into channels
 blue,green,red = cv2.split(img)
@@ -64,12 +64,14 @@ axis[1, 2].axes.xaxis.set_visible(False)
 axis[1, 2].axes.yaxis.set_visible(False)
 
 ##### Store the image compressed with 50 components. Compare the size
-"""cv2.imwrite('2 components.png',img_reduced_list[0, :, :, :])
-cv2.imwrite('5 components.png',img_reduced_list[1, :, :, :])
-cv2.imwrite('20 components.png',img_reduced_list[2, :, :, :])
-cv2.imwrite('50 components.png',img_reduced_list[3, :, :, :])
-cv2.imwrite('80 components.png',img_reduced_list[4, :, :, :])
-cv2.imwrite('100 components.png',img_reduced_list[5, :, :, :])"""
+##### *255 to scale back (python ignores scaling, but the png file can't)
+##### set last dimension to ::-1 to reverse the order, since we want RGB to BGR
+cv2.imwrite('2 components.png', 255*img_reduced_list[0, :, :, ::-1])
+cv2.imwrite('5 components.png',  255*img_reduced_list[1, :, :, ::-1])
+cv2.imwrite('20 components.png', 255*img_reduced_list[2, :, :, ::-1])
+cv2.imwrite('50 components.png', 255*img_reduced_list[3, :, :, ::-1])
+cv2.imwrite('80 components.png', 255*img_reduced_list[4, :, :, ::-1])
+cv2.imwrite('100 components.png',255*img_reduced_list[5, :, :, ::-1])
 
 d = {"# of Components": ["Storage Size (KB)", "Compression Ratio"],
      "Original": ["463", "NA"], "2": ["17", 27.24], "5": ["21", 22.05], "20": ["28", 16.54],
