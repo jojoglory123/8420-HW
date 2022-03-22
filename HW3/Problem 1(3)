@@ -1,44 +1,40 @@
 import numpy as np
-import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from matplotlib.colors import ListedColormap
+import matplotlib.pyplot as plt
 
+#########################################################################
+#################### LDA for Classification #############################
+#########################################################################
 X = np.array([[1, 3], [2, 5], [3, 4], [4, 3], [5, 2], [5, 1]], dtype=float)
-y = np.array([0, 0, 0, 0, 1, 1]).reshape(-1, 1)
+y = np.array([0, 0, 0, 0, 1, 1])
 X0 = X[np.where(y==0)[0], :]
 X1 = X[np.where(y==1)[0], :]
 
 ##### Standardize data
-miu = X.mean(axis=0).reshape(1, -1)
-sigma = X.std(axis=0).reshape(1, -1)
-X = (X-miu)/sigma
+scaler = StandardScaler().fit(X)
+
+##### scaler.transform(X) standardize X
+X = scaler.transform(X)
 
 ##### Filter data by class
 X0 = X[np.where(y==0)[0], :]
 X1 = X[np.where(y==1)[0], :]
 
-##### Find centroid
-miu0 = X0.mean(axis=0).reshape(1, -1)
-miu1 = X1.mean(axis=0).reshape(1, -1)
-
-##### Calculate Sw and w
-X0_minus_miu0 =  X0 - miu0
-X1_minus_miu1 =  X1 - miu1
-Sw = sum(sum(X0_minus_miu0**2)) + sum(sum(X1_minus_miu1**2))
-w = (1/Sw) * (miu0 - miu1).reshape(-1, 1)
-##### Normalize w first since it's U_red in PCA, has to be norm 1
+##### Fit LDA K = 1
+K = 1
+lda = LDA(n_components=K).fit(X, y)
+##### Intercept and slope of decision boundary
+intercept_db = -lda.intercept_/lda.coef_[0, 1]
+slope_db = - (lda.coef_[0, 0]/lda.coef_[0, 1])
+##### Find eigenvector (w) spanning projection line (w should be perpendicular to decision boundary)
+w = np.array([1, lda.coef_[0, 1]/lda.coef_[0, 0]]).reshape(-1, 1)
+##### Normalize w since it's U_red in PCA, has to be norm 1
 w = w/np.sqrt(w.T@w)
 print("Eigenvector(s) (w) spanning projection space : \n", w)
 
 ##### Plot decision boundary/region first (otherwise it will cover others)
-plot1 = plt.figure(1)
-##### find slope of decision boundary
-slope = w[1, 0] / w[0, 0]
-slope_db = -(1/slope)
-##### Decision boundary will pass mid point of projdected miu0 and projected miu1
-Z_mid = (miu0 @ w + miu1 @ w)/2
-Z_mid_rec = Z_mid @ w.T
-intercept_db = Z_mid_rec[0, 1] - slope_db * Z_mid_rec[0, 0]
-
 ##### Use controu to plot colored decision region
 x_min, x_max = X[:, 0].min() - 0.15, X[:, 0].max() + 0.35
 y_min, y_max = X[:, 1].min() - 0.14, X[:, 1].max() + 0.16
