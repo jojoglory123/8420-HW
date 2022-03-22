@@ -1,0 +1,40 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+from sklearn.neighbors import KNeighborsClassifier
+
+X = np.array([[1, 1], [2, 2], [2, 3], [3, 2], [3, 3], [4, 4]], dtype=float)
+y = np.array([0, 0, 0, 1, 1, 1])
+X0 = X[np.where(y==0)[0], :]
+X1 = X[np.where(y==1)[0], :]
+
+cmap_light = ListedColormap(['#FFAAAA', '#AAAAFF'])
+cmap_bold = ListedColormap(['#FF0000', '#0000FF'])
+
+figure1, axis = plt.subplots(1, 2)
+
+##### Plot k=1
+knn1 = KNeighborsClassifier(n_neighbors=1).fit(X, y)
+x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01), np.arange(y_min, y_max, 0.01))
+height = knn1.predict(np.c_[xx.ravel(), yy.ravel()])
+height = height.reshape(xx.shape)
+axis[0].pcolormesh(xx, yy, height, cmap=cmap_light)
+scater_plot1 = axis[0].scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold)
+axis[0].set_title(r"$k$-nn classification ($k$ = 1)" )
+axis[0].legend(handles=scater_plot1.legend_elements()[0], labels=[r"class 0", r"class 1"], framealpha=0.5)
+
+##### Plot k=3
+knn2 = KNeighborsClassifier(n_neighbors=3).fit(X, y)
+x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01), np.arange(y_min, y_max, 0.01))
+height = knn2.predict(np.c_[xx.ravel(), yy.ravel()])
+height = height.reshape(xx.shape)
+axis[1].pcolormesh(xx, yy, height, cmap=cmap_light)
+scater_plot2 = axis[1].scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold)
+axis[1].set_title(r"$k$-nn classification ($k$ = 3)" )
+axis[1].legend(handles=scater_plot2.legend_elements()[0], labels=[r"class 0", r"class 1"], framealpha=0.5)
+
+plt.show()
