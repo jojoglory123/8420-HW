@@ -1,0 +1,51 @@
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+
+X = np.array([[1, 3], [2, 5], [3, 4], [4, 3], [5, 2], [5, 1]])
+
+figure1 = plt.figure(1)
+plt.scatter(X[:, 0], X[:, 1])
+plt.grid()
+plt.gca().set_aspect('equal', adjustable='box')
+plt.title("Scatter Plot of Data")
+
+##### Standardize data
+scaler = StandardScaler().fit(X)
+X = scaler.transform(X)
+
+##### First K components PCA
+K = 1
+pca = PCA(n_components=K).fit(X)
+
+##### Find reduced coordinate
+Z = pca.transform(X)
+
+print("Variance retained after PCA: ", sum(pca.explained_variance_ratio_))
+print("Eigenvector(s) spanning the projection space: \n", pca.components_.reshape(-1, 1))
+print("Eigenvalue(s) used: ", pca.singular_values_.item())
+
+##### Recover the data with original dimensionality
+X_rec = pca.inverse_transform(Z)
+
+##### Plot standardized data
+figure2 = plt.figure(2)
+plt.scatter(X[:, 0], X[:, 1], label = "Standardized Data")
+plt.gca().set_aspect('equal', adjustable='box')
+plt.grid()
+plt.scatter(X_rec[:, 0], X_rec[:, 1], facecolors='none', color = "red")
+
+##### Plot projection line
+x = np.linspace(np.amin(X_rec[:, 0]), np.amax(X_rec[:, 0]), 10)
+y = (pca.components_[0, 1]/pca.components_[0, 0]) * x
+plt.plot(x, y, linestyle = 'dotted', color = "red", label = "Projection Line/Points")
+plt.legend(loc="upper right")
+
+##### Plot perpendicular lines
+plt.title("Scatter Plot of Standardized Data with Projection")
+for i in range(X.shape[0]):
+    x_values = [X_rec[i, 0], X[i, 0]]
+    y_values = [X_rec[i, 1], X[i, 1]]
+    plt.plot(x_values, y_values, linestyle = 'dotted', color = "red")
+plt.show()
