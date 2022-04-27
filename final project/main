@@ -1,0 +1,172 @@
+from sklearn.datasets import fetch_openml
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import precision_recall_fscore_support as PRFSscore
+from sklearn import metrics
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+from PIL import Image, ImageFilter
+
+#################################################################################
+################### Load Data, separate to data/target ##########################
+#################################################################################
+mnist = np.loadtxt("mnist_784.csv", delimiter=',', skiprows=1)
+data = mnist[:, :-1]
+target = mnist[:, -1]
+
+#################################################################################
+###################### Plot first 5 digis in train set ##########################
+#################################################################################
+figure1 = plt.figure(figsize=(20, 4))
+for index, (image, label) in enumerate(zip(data[:5], target[:5])):
+    plt.subplot(1, 5, index+1)
+    plt.imshow(np.reshape(image, (28, 28)), cmap="gray")
+    plt.title("Number: %i" % label)
+plt.suptitle("First 5 digits in train set")
+
+#################################################################################
+########## Train model by train set, test model by test set #####################
+#################################################################################
+X_train, X_test, y_train, y_test = train_test_split(data, target, test_size=0.2)
+
+model = LogisticRegression(solver="lbfgs", C=0.5) #strength of regularization if 1/C=2
+model.fit(X_train, y_train)
+predictions = model.predict(X_test)
+score = model.score(X_test, y_test)
+print("Accuracy in test set: ", score)
+
+#################################################################################
+################## Predict first 5 digits in test set ###########################
+#################################################################################
+figure2 = plt.figure(figsize=(20, 4))
+for index, (image, label) in enumerate(zip(X_test[:5], predictions[:5])):
+    plt.subplot(1, 5, index+1)
+    plt.imshow(np.reshape(image, (28, 28)), cmap="gray")
+    plt.title("Prediction: %i" % label)
+plt.suptitle("First 5 predictions in test set")
+
+
+#################################################################################
+################ Present good handwriting (in png form) ####################
+#################################################################################
+figure3 = plt.figure(figsize=(20, 2))
+selfmade_img = mpimg.imread('HRall_b.png')
+plt.imshow(selfmade_img)
+plt.title("Good Handwriting (in png form)")
+
+
+
+#################################################################################
+################ Convert my handwritten digits (png) to MNIST form ##############
+#################################################################################
+def imageprepare(argv):
+    """
+    This function returns the pixel values.
+    The imput is a png file location.
+    """
+    im = Image.open(argv).convert('L')
+    width = float(im.size[0])
+    height = float(im.size[1])
+    newImage = Image.new('L', (28, 28), (255))  # creates white canvas of 28x28 pixels
+
+    if width > height:  # check which dimension is bigger
+        # Width is bigger. Width becomes 20 pixels.
+        nheight = int(round((20.0 / width * height), 0))  # resize height according to ratio width
+        if (nheight == 0):  # rare case but minimum is 1 pixel
+            nheight = 1
+            # resize and sharpen
+        img = im.resize((20, nheight), Image.ANTIALIAS).filter(ImageFilter.SHARPEN)
+        wtop = int(round(((28 - nheight) / 2), 0))  # calculate horizontal position
+        newImage.paste(img, (4, wtop))  # paste resized image on white canvas
+    else:
+        # Height is bigger. Height becomes 20 pixels.
+        nwidth = int(round((20.0 / height * width), 0))  # resize width according to ratio height
+        if (nwidth == 0):  # rare case but minimum is 1 pixel
+            nwidth = 1
+            # resize and sharpen
+        img = im.resize((nwidth, 20), Image.ANTIALIAS).filter(ImageFilter.SHARPEN)
+        wleft = int(round(((28 - nwidth) / 2), 0))  # calculate vertical position
+        newImage.paste(img, (wleft, 4))  # paste resized image on white canvas
+
+    # newImage.save("sample.png
+
+    tv = list(newImage.getdata())  # get pixel values
+
+    # normalize pixels to 0 and 1. 0 is pure white, 1 is pure black.
+    tva = np.array([(255 - x) * 1.0 / 255.0 for x in tv]).reshape(1, -1)
+    return tva
+
+
+selfmade_x = np.zeros((10, 784))
+
+selfmade_x[0, :] = imageprepare('HR1_b.png')
+selfmade_x[1, :] = imageprepare('HR2_b.png')
+selfmade_x[2, :] = imageprepare('HR3_b.png')
+selfmade_x[3, :] = imageprepare('HR4_b.png')
+selfmade_x[4, :] = imageprepare('HR5_b.png')
+selfmade_x[5, :] = imageprepare('HR6_b.png')
+selfmade_x[6, :] = imageprepare('HR7_b.png')
+selfmade_x[7, :] = imageprepare('HR8_b.png')
+selfmade_x[8, :] = imageprepare('HR9_b.png')
+selfmade_x[9, :] = imageprepare('HR10_b.png')
+
+selfmade_y = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 0])
+
+
+#################################################################################
+################## Plot my handwritten digits (in MNIST form) ###################
+#################################################################################
+figure4 = plt.figure(figsize=(20, 3))
+for index, (image, label) in enumerate(zip(selfmade_x, selfmade_y)):
+    plt.subplot(1, 10, index+1)
+    plt.imshow(np.reshape(image, (28, 28)), cmap="gray")
+    plt.title("Number: %i" % label)
+plt.suptitle("My handwritten digits (in MNIST form)")
+
+
+#################################################################################
+####### Predict for my handwritten digits by the previously trained model########
+#################################################################################
+selfmade_predictions = model.predict(selfmade_x)
+selfmade_score = model.score(selfmade_x, selfmade_y)
+print("Accuracy in handwritten digits: ", selfmade_score)
+
+figure5 = plt.figure(figsize=(20, 3))
+for index, (image, label) in enumerate(zip(selfmade_x, selfmade_predictions)):
+    plt.subplot(1, 10, index+1)
+    plt.imshow(np.reshape(image, (28, 28)), cmap="gray")
+    plt.title("Prediction: %i" % label)
+plt.suptitle("Predictions for my handwritten digits")
+
+#################################################################################
+########## precission, recall, F1-score #####################
+#################################################################################
+#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+#model =LogisticRegression(solver="saga", C=0.5) #strength of regularization if 1/C=2
+#model.fit(X_train, y_train)
+#y_pred = model.predict(X_test)
+#precision, recall, fscore, support = PRFSscore(y_test, y_pred)
+
+#print('precision: \n', precision)
+#print('recall: \n', recall)
+#print('f1-score: \n', fscore)
+#print('support: \n', support)
+
+#conf_matrix = confusion_matrix(y_true=y_test, y_pred=y_pred)
+#print('confusion matrix: \n', conf_matrix)
+#
+# Print the confusion matrix using Matplotlib
+#
+#figure1, ax = plt.subplots(figsize=(7, 7))
+#ax.matshow(conf_matrix, cmap=plt.cm.Blues, alpha=0.3)
+#for i in range(conf_matrix.shape[0]):
+#    for j in range(conf_matrix.shape[1]):
+#        ax.text(x=j, y=i, s=conf_matrix[i, j], va='center', ha='center', size='xx-large')
+
+#plt.xlabel('Predictions', fontsize=18)
+#plt.ylabel('Actuals', fontsize=18)
+#plt.title('(LogiReg) Confusion Matrix', fontsize=18)
+
+plt.show()
+
