@@ -1,0 +1,97 @@
+import numpy as np
+from sklearn.decomposition import PCA
+import cv2
+import matplotlib.pyplot as plt
+
+img = cv2.cvtColor(cv2.imread('rose.jpg'), cv2.COLOR_BGR2RGB)
+figure1 = plt.figure(1)
+plt.imshow(img)
+plt.title("Original Image")
+
+#Splitting into channels
+X_blue, X_green, X_red = cv2.split(img)
+
+##### Scale them to 0 to 1
+X_blue = X_blue + np.random.normal(0, 50, size=(X_blue.shape[0], X_blue.shape[1]))
+X_green = X_green + np.random.normal(0, 50, size=(X_green.shape[0], X_green.shape[1]))
+X_red = X_red + np.random.normal(0, 50, size=(X_red.shape[0], X_red.shape[1]))
+
+X_blue, X_green, X_red = X_blue/255, X_green/255, X_red/255
+
+figure2 = plt.figure(2)
+img_with_noise = cv2.merge((X_blue, X_green, X_red))
+plt.imshow(img_with_noise)
+plt.title("Original Image with Noise")
+
+##### Number of components
+K = 97
+
+##### Find reduced coordinate
+pca_blue = PCA(n_components=K).fit(X_blue)
+Z_blue = pca_blue.transform(X_blue)
+
+pca_green = PCA(n_components=K).fit(X_green)
+Z_green = pca_blue.transform(X_green)
+
+pca_red = PCA(n_components=K).fit(X_red)
+Z_red = pca_blue.transform(X_red)
+
+##### Recover the data with original dimensionality
+X_blue_rec = pca_blue.inverse_transform(Z_blue)
+X_green_rec = pca_blue.inverse_transform(Z_green)
+X_red_rec = pca_blue.inverse_transform(Z_red)
+
+##### Combine 3 reduced channels to reduec img
+img_reduced_PCA_97c = cv2.merge((X_blue_rec, X_green_rec, X_red_rec))
+
+##### You can plot compressed figure now
+figure3 = plt.figure(3)
+plt.imshow(img_reduced_PCA_97c)
+plt.title("PCA with 20% Components")
+
+K = 291
+
+##### Find reduced coordinate
+pca_blue = PCA(n_components=K).fit(X_blue)
+Z_blue = pca_blue.transform(X_blue)
+
+pca_green = PCA(n_components=K).fit(X_green)
+Z_green = pca_blue.transform(X_green)
+
+pca_red = PCA(n_components=K).fit(X_red)
+Z_red = pca_blue.transform(X_red)
+
+##### Recover the data with original dimensionality
+X_blue_rec = pca_blue.inverse_transform(Z_blue)
+X_green_rec = pca_blue.inverse_transform(Z_green)
+X_red_rec = pca_blue.inverse_transform(Z_red)
+
+##### Combine 3 reduced channels to reduec img
+img_reduced_PCA_291c = cv2.merge((X_blue_rec, X_green_rec, X_red_rec))
+
+##### You can plot compressed figure now
+figure4 = plt.figure(4)
+plt.imshow(img_reduced_PCA_291c)
+plt.title("PCA with 60% Components")
+
+figure5, axis = plt.subplots(2, 2)
+axis[0, 0].imshow(img)
+axis[0, 0].set_title("Original Image")
+axis[0, 0].axes.xaxis.set_visible(False)
+axis[0, 0].axes.yaxis.set_visible(False)
+axis[0, 1].imshow(img_with_noise)
+axis[0, 1].set_title("Original Image with Noise")
+axis[0, 1].axes.xaxis.set_visible(False)
+axis[0, 1].axes.yaxis.set_visible(False)
+axis[1, 0].imshow(img_reduced_PCA_97c)
+axis[1, 0].set_title("PCA with 20% Components")
+axis[1, 0].axes.xaxis.set_visible(False)
+axis[1, 0].axes.yaxis.set_visible(False)
+axis[1, 1].imshow(img_reduced_PCA_291c)
+axis[1, 1].set_title("PCA with 60% Components")
+axis[1, 1].axes.xaxis.set_visible(False)
+axis[1, 1].axes.yaxis.set_visible(False)
+
+
+
+plt.show()
