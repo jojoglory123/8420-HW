@@ -1,0 +1,92 @@
+import numpy as np
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+from matplotlib.ticker import ScalarFormatter
+############################################################
+##### Generate data
+############################################################
+np.random.seed(2022)
+n = 1000
+p = 100
+X = np.random.rand(n,p)
+X_design = np.c_[np.ones(n), X]
+y = np.random.rand(n, 1)
+
+############################################################
+##### Fix alpha and lambda
+############################################################
+alpha = 0.5
+lamb = 2.0
+
+############################################################
+##### Find OLS coefficients (including intercept)
+############################################################
+OLSmodel = LinearRegression().fit(X, y)
+OLScoef = np.concatenate((OLSmodel.intercept_, OLSmodel.coef_.flatten())).reshape(-1, 1)
+
+############################################################
+##### Find Elastic Net coefficients (including intercept)
+############################################################
+# denominator
+top = abs(OLScoef)-0.25*lamb
+for i in range(p+1):
+    if top[i, 0]>0:
+        top[i, 0]=top[i, 0]
+    else:
+        top[i, 0]=0
+# sign
+sign = np.zeros((p+1, 1))
+for i in range(p+1):
+    if OLScoef[i, 0]>0:
+        sign[i, 0]=1
+    else:
+        sign[i, 0]=-1
+# coef
+NETcoef = (top/(1+0.5*lamb))*sign
+
+
+
+
+############################################################
+##### Objective function
+############################################################
+def obj_function(X, Y, Beta, Alpha, Lambda):
+    Res = Y-X@Beta
+    Obj = (Res.T @ Res).item() + Lambda*Alpha* (Beta.T @ Beta).item() + Lambda*(1-Alpha)* np.sum(abs(Beta))
+    return(Obj)
+
+############################################################
+##### Initialize with random betas, calculate initial obj
+############################################################
+INIcoef = np.random.rand(p+1, 1)
+obj = []
+obj.append(obj_function(X_design, y, INIcoef, alpha, lamb))
+
+############################################################
+##### Replace beta in inital one by one
+##### Append obj each time
+############################################################
+for i in range(p+1):
+    INIcoef[i, 0] = NETcoef[i, 0]
+    obj.append(obj_function(X_design, y, INIcoef, alpha, lamb))
+
+############################################################
+##### Plot objective values
+############################################################
+fig1 = plt.figure(1)
+
+class ScalarFormatterClass(ScalarFormatter):
+   def _set_format(self):
+      self.format = "%1.2f"
+
+plt.plot(obj)
+
+ax = plt.gca()
+yScalarFormatter = ScalarFormatterClass(useMathText=True)
+yScalarFormatter.set_powerlimits((0,0))
+ax.yaxis.set_major_formatter(yScalarFormatter)
+
+plt.title("Objective Values in Epochs")
+plt.xlabel("Number of Coefficients Updated")
+plt.ylabel("Objective Value")
+plt.show()
